@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <!-- Meta tags básicas -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Ponto - Record Guaíba</title>
+    
     <style>
+        /* Estilos gerais */
         body {
             font-family: Arial, sans-serif;
             max-width: 650px;
@@ -12,133 +15,153 @@
             padding: 20px;
             background-color: #f5f5f5;
         }
+        
+        /* Container do logo - reduzido em 50% */
         .logo-container {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .logo-container img {
-            max-width: 300px;
+            max-width: 150px; /* Reduzido de 300px para 150px (50%) */
             height: auto;
         }
+        
+        /* Estilos do cabeçalho */
         h1 {
             color: #003366;
             text-align: center;
-            margin-bottom: 25px;
-            font-size: 24px;
+            margin-bottom: 20px;
+            font-size: 22px;
         }
+        
+        /* Container principal */
         .container {
             background-color: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+        
+        /* Estilos dos grupos de formulário */
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: bold;
             color: #333;
         }
+        
+        /* Estilos dos inputs */
         input[type="time"], input[type="number"], select {
-            padding: 10px;
+            padding: 8px;
             width: 100%;
             border: 1px solid #ddd;
-            border-radius: 6px;
+            border-radius: 4px;
             box-sizing: border-box;
-            font-size: 16px;
+            font-size: 14px;
         }
+        
+        /* Estilos do botão principal */
         button {
             background-color: #CC0000;
             color: white;
-            padding: 12px 18px;
+            padding: 10px 15px;
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 8px;
             transition: background-color 0.3s;
             font-weight: bold;
         }
         button:hover {
             background-color: #AA0000;
         }
+        
+        /* Estilos da área de resultados */
         .result {
-            margin-top: 25px;
-            padding: 20px;
+            margin-top: 20px;
+            padding: 15px;
             background-color: #F0F8FF;
-            border-radius: 8px;
+            border-radius: 6px;
             display: none;
-            border-left: 5px solid #2b6eb1;
+            border-left: 4px solid #003366;
         }
         .result h3 {
             margin-top: 0;
-            color: #2b6eb1;
+            color: #003366;
             border-bottom: 1px solid #B0C4DE;
-            padding-bottom: 10px;
+            padding-bottom: 8px;
+            font-size: 16px;
         }
         .result-item {
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
+            font-size: 14px;
         }
         .result-item strong {
-            color: #2b6eb1;
+            color: #003366;
         }
+        
+        /* Estilos das opções de jornada */
         .options-group {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 10px;
+            margin-bottom: 15px;
         }
         .option-card {
             flex: 1;
-            padding: 15px;
+            padding: 12px;
             border: 1px solid #ddd;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
             text-align: center;
             transition: all 0.3s;
+            font-size: 13px;
+        }
+        .option-card h3 {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .option-card p {
+            margin: 5px 0;
+            font-size: 12px;
         }
         .option-card:hover {
             border-color: #CC0000;
         }
         .option-card.active {
             background-color: #F0F8FF;
-            border-color: #2b6eb1;
-            box-shadow: 0 0 0 2px #B0C4DE;
+            border-color: #003366;
+            box-shadow: 0 0 0 1px #B0C4DE;
         }
-        .manual-toggle {
-            text-align: center;
-            margin: 15px 0;
-            color: #666;
-        }
-        .manual-fields {
-            display: none;
-            animation: fadeIn 0.5s;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        
+        /* Informações totais */
         .total-info {
             font-weight: bold;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px dashed hsl(123, 66%, 34%);
-            color: hsl(123, 66%, 34%);
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #003366;
+            color: #003366;
+            font-size: 13px;
         }
     </style>
 </head>
 <body>
+    <!-- Logo reduzido em 50% -->
     <div class="logo-container">
-        <img src="https://upload.wikimedia.org/wikipedia/pt/b/b3/Logotipo_da_Record_Gua%C3%ADba.png" alt="Record Guaíba">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/7/7f/Logotipo_da_Record_Gua%C3%ADba.png" alt="Record Guaíba">
     </div>
     
+    <!-- Container principal -->
     <div class="container">
         <h1>Controle de Ponto Flexível</h1>
         
+        <!-- Seção de seleção de modo (Automático/Manual) -->
         <div class="options-group">
             <div class="option-card active" onclick="setJornadaType('automatic')">
                 <h3>Automático</h3>
@@ -150,6 +173,7 @@
             </div>
         </div>
         
+        <!-- Campos do modo automático -->
         <div id="automatic-fields">
             <div class="form-group">
                 <label for="entrada-auto">Horário de Entrada:</label>
@@ -159,7 +183,8 @@
             <div class="form-group">
                 <label for="jornada-type">Tipo de Jornada:</label>
                 <select id="jornada-type">
-                    <option value="9.8">9 horas e 48 minutos</option>
+                    <option value="8.8">8 horas e 48 minutos</option>
+                    <option value="10">10 horas</option>
                 </select>
             </div>
             
@@ -170,6 +195,7 @@
             </div>
         </div>
         
+        <!-- Campos do modo manual -->
         <div id="manual-fields" class="manual-fields">
             <div class="form-group">
                 <label for="entrada-manual">Horário de Entrada:</label>
@@ -189,13 +215,16 @@
             <div class="form-group">
                 <label for="jornada-type-manual">Tipo de Jornada:</label>
                 <select id="jornada-type-manual">
-                    <option value="9.8">9 horas e 48 minutos</option>
+                    <option value="8.8">8 horas e 48 minutos</option>
+                    <option value="10">10 horas</option>
                 </select>
             </div>
         </div>
         
+        <!-- Botão para calcular os horários -->
         <button onclick="calcularHorarios()">Calcular Horários</button>
         
+        <!-- Seção de resultados (inicialmente oculta) -->
         <div id="resultado" class="result">
             <h3>Horários do Dia</h3>
             <div class="result-item"><strong>Entrada:</strong> <span id="entrada-resultado"></span></div>
@@ -208,9 +237,12 @@
         </div>
     </div>
 
+    <!-- Script JavaScript -->
     <script>
+        // Variável para controlar o modo atual (automático/manual)
         let currentMode = 'automatic';
         
+        // Função para alternar entre os modos automático e manual
         function setJornadaType(type) {
             currentMode = type;
             document.querySelectorAll('.option-card').forEach(card => {
@@ -222,18 +254,21 @@
             document.getElementById('manual-fields').style.display = type === 'manual' ? 'block' : 'none';
         }
         
+        // Converte hora no formato HH:MM para minutos
         function timeToMinutes(timeStr) {
             if (!timeStr) return 0;
             const [hours, minutes] = timeStr.split(':').map(Number);
             return hours * 60 + minutes;
         }
         
+        // Converte minutos para o formato HH:MM
         function minutesToTime(totalMinutes) {
             const hours = Math.floor(totalMinutes / 60);
             const minutes = totalMinutes % 60;
             return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
         }
         
+        // Função principal que decide qual cálculo usar
         function calcularHorarios() {
             if (currentMode === 'automatic') {
                 calcularAutomatico();
@@ -242,6 +277,7 @@
             }
         }
         
+        // Cálculo no modo automático (calcula todos os horários com base na entrada)
         function calcularAutomatico() {
             const entradaInput = document.getElementById('entrada-auto').value;
             if (!entradaInput) {
@@ -256,14 +292,14 @@
             const entrada = new Date();
             entrada.setHours(horaEntrada, minutoEntrada, 0, 0);
             
-            // Calcular minutos totais de trabalho (jornada total - intervalo)
+            // Calcula minutos totais de trabalho (jornada total - intervalo)
             const totalMinutosTrabalho = (jornadaType * 60) - intervalo;
             
-            // Distribuir tempo de trabalho (60% manhã, 40% tarde - ajustável)
+            // Distribui tempo de trabalho (60% manhã, 40% tarde)
             const minutosManha = Math.round(totalMinutosTrabalho * 0.6);
             const minutosTarde = totalMinutosTrabalho - minutosManha;
             
-            // Calcular todos os horários
+            // Calcula todos os horários
             const saidaIntervalo = new Date(entrada.getTime() + minutosManha * 60000);
             const retornoIntervalo = new Date(saidaIntervalo.getTime() + intervalo * 60000);
             const saida = new Date(retornoIntervalo.getTime() + minutosTarde * 60000);
@@ -278,6 +314,7 @@
             );
         }
         
+        // Cálculo no modo manual (usuário informa entrada e horários de intervalo)
         function calcularManual() {
             const entradaInput = document.getElementById('entrada-manual').value;
             const saidaIntervaloInput = document.getElementById('saida-intervalo').value;
@@ -336,17 +373,19 @@
             );
         }
         
+        // Exibe os resultados na tela
         function exibirResultados(entrada, saidaIntervalo, retornoIntervalo, saida, jornadaType, intervalo) {
             function formatarHora(data) {
                 return data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             }
             
+            // Preenche os campos de resultado
             document.getElementById('entrada-resultado').textContent = formatarHora(entrada);
             document.getElementById('saida-intervalo-resultado').textContent = formatarHora(saidaIntervalo);
             document.getElementById('retorno-intervalo-resultado').textContent = formatarHora(retornoIntervalo);
             document.getElementById('saida-resultado').textContent = formatarHora(saida);
             
-            // Calcular totais
+            // Calcula totais
             const totalMinutos = (jornadaType * 60);
             const horasTotal = Math.floor(totalMinutos / 60);
             const minutosTotal = totalMinutos % 60;
@@ -355,12 +394,14 @@
             const horasTrabalhadas = Math.floor(tempoTrabalhado / 60);
             const minutosTrabalhados = tempoTrabalhado % 60;
             
+            // Exibe informações totais
             document.getElementById('total-dia').innerHTML = `
                 <strong>Jornada total:</strong> ${horasTotal}h${minutosTotal.toString().padStart(2, '0')}min<br>
                 <strong>Tempo trabalhado:</strong> ${horasTrabalhadas}h${minutosTrabalhados.toString().padStart(2, '0')}min<br>
                 <strong>Intervalo:</strong> ${Math.floor(intervalo/60)}h${(intervalo%60).toString().padStart(2, '0')}min
             `;
             
+            // Mostra a seção de resultados
             document.getElementById('resultado').style.display = 'block';
         }
     </script>
