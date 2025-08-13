@@ -14,11 +14,13 @@
         }
         .logo-container {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Reduzido de 20px para 15px */
         }
         .logo-container img {
-            max-width: 300px;
+            max-width: 180px; /* Alterado de 300px para 180px */
             height: auto;
+            display: block;
+            margin: 0 auto;
         }
         h1 {
             color: #003366;
@@ -129,6 +131,10 @@
             border-top: 1px dashed hsl(123, 66%, 34%);
             color: hsl(123, 66%, 34%);
         }
+        .form-group span {
+            margin-left: 10px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -212,7 +218,7 @@
         let currentMode = 'automatic';
         
         function setJornadaType(type) {
-            currentMode = type;a
+            currentMode = type;
             document.querySelectorAll('.option-card').forEach(card => {
                 card.classList.remove('active');
             });
