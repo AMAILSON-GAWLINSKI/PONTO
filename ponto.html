@@ -135,6 +135,15 @@
             margin-left: 10px;
             color: #666;
         }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .checkbox-group input {
+            width: auto;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -156,6 +165,11 @@
             </div>
         </div>
         
+        <div class="checkbox-group">
+            <input type="checkbox" id="trabalha-sabado">
+            <label for="trabalha-sabado">Trabalha no sábado?</label>
+        </div>
+        
         <div id="automatic-fields">
             <div class="form-group">
                 <label for="entrada-auto">Horário de Entrada:</label>
@@ -166,6 +180,7 @@
                 <label for="jornada-type">Tipo de Jornada:</label>
                 <select id="jornada-type">
                     <option value="9.8">9 horas e 48 minutos</option>
+                    <option value="9">9 horas (sábado)</option>
                 </select>
             </div>
             
@@ -196,6 +211,7 @@
                 <label for="jornada-type-manual">Tipo de Jornada:</label>
                 <select id="jornada-type-manual">
                     <option value="9.8">9 horas e 48 minutos</option>
+                    <option value="9">9 horas (sábado)</option>
                 </select>
             </div>
         </div>
@@ -216,6 +232,21 @@
 
     <script>
         let currentMode = 'automatic';
+        
+        // Atualiza o tipo de jornada quando o checkbox é alterado
+        document.getElementById('trabalha-sabado').addEventListener('change', function() {
+            const isSabado = this.checked;
+            const jornadaType = document.getElementById('jornada-type');
+            const jornadaTypeManual = document.getElementById('jornada-type-manual');
+            
+            if (isSabado) {
+                jornadaType.value = '9';
+                jornadaTypeManual.value = '9';
+            } else {
+                jornadaType.value = '9.8';
+                jornadaTypeManual.value = '9.8';
+            }
+        });
         
         function setJornadaType(type) {
             currentMode = type;
