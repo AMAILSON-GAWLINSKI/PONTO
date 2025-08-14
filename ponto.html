@@ -185,6 +185,56 @@
                 padding: 20px 0;
             }
         }
+        /* Estilo do POP de alerta */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .popup-alert {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            text-align: center;
+            animation: popIn 0.3s;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .popup-alert h2 {
+            color: #d9534f;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        .popup-alert p {
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .popup-alert button {
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            width: auto;
+            margin: 0 auto;
+        }
+        .popup-alert button:hover {
+            background-color: #c9302c;
+        }
     </style>
 </head>
 <body>
@@ -344,6 +394,21 @@
             }
         }
         
+        function showIntervaloAlert(intervalo) {
+            const popupHTML = `
+                <div class="popup-overlay" id="intervalo-popup">
+                    <div class="popup-alert">
+                        <h2>⚠️ Atenção! ⚠️</h2>
+                        <p>Você realizou apenas ${intervalo} minutos de intervalo!<br><br>
+                        O intervalo mínimo recomendado é de 1 hora (60 minutos) para garantir seu bem-estar e conformidade com as normas trabalhistas. Por favor, tenha mais atenção com seus horários de descanso! ⏰💙</p>
+                        <button onclick="document.getElementById('intervalo-popup').remove()">Sair</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', popupHTML);
+        }
+        
         function calcularAutomatico() {
             const entradaInput = document.getElementById('entrada-auto').value;
             if (!entradaInput) {
@@ -360,6 +425,8 @@
                 alertaIntervalo.style.display = 'flex';
                 document.getElementById('alerta-intervalo-texto').textContent = 
                     'Realizou tempo inferior a 1 hora de intervalo (' + intervalo + 'min)';
+                // Mostrar popup de alerta
+                showIntervaloAlert(intervalo);
             } else {
                 alertaIntervalo.style.display = 'none';
             }
@@ -438,6 +505,8 @@
                 alertaIntervalo.style.display = 'flex';
                 document.getElementById('alerta-intervalo-texto').textContent = 
                     'Realizou tempo inferior a 1 hora de intervalo (' + intervalo + 'min)';
+                // Mostrar popup de alerta
+                showIntervaloAlert(intervalo);
             } else {
                 alertaIntervalo.style.display = 'none';
             }
