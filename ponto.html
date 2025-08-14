@@ -109,6 +109,17 @@
             border-left: 4px solid #1890ff;
             font-weight: bold;
         }
+        .result-item.diferenca {
+            background-color: #f6ffed;
+            border-left: 4px solid #52c41a;
+            font-weight: bold;
+        }
+        .result-item.positivo {
+            color: #52c41a;
+        }
+        .result-item.negativo {
+            color: #f5222d;
+        }
         .result-item strong {
             color: #2b6eb1;
         }
@@ -234,6 +245,11 @@
                 </div>
                 
                 <div class="form-group">
+                    <label for="saida-manual">Saída:</label>
+                    <input type="time" id="saida-manual">
+                </div>
+                
+                <div class="form-group">
                     <label for="jornada-type-manual">Tipo de Jornada:</label>
                     <select id="jornada-type-manual">
                         <option value="9.8">9 horas e 48 minutos</option>
@@ -250,6 +266,9 @@
                 <div class="result-item"><strong>Saída para Intervalo:</strong> <span id="saida-intervalo-resultado"></span></div>
                 <div class="result-item"><strong>Retorno do Intervalo:</strong> <span id="retorno-intervalo-resultado"></span></div>
                 <div class="result-item saida"><strong>SAÍDA:</strong> <span id="saida-resultado" style="font-weight: bold; color: #1890ff;"></span></div>
+                <div id="diferenca-container" class="result-item diferenca" style="display: none;">
+                    <strong>DIFERENÇA:</strong> <span id="diferenca-resultado"></span>
+                </div>
                 <div class="total-info">
                     <span id="total-dia"></span>
                 </div>
@@ -298,6 +317,14 @@
             return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
         }
         
+        function formatDiferenca(minutos) {
+            const horas = Math.floor(Math.abs(minutos) / 60);
+            const mins = Math.abs(minutos) % 60;
+            const sinal = minutos >= 0 ? '+' : '-';
+            
+            return `${sinal} ${horas}h${mins.toString().padStart(2, '0')}min`;
+        }
+        
         function calcularHorarios() {
             if (currentMode === 'automatic') {
                 calcularAutomatico();
@@ -338,7 +365,8 @@
                 retornoIntervalo,
                 saida,
                 jornadaType,
-                intervalo
+                intervalo,
+                0 // Sem diferença no modo automático
             );
         }
         
@@ -346,9 +374,10 @@
             const entradaInput = document.getElementById('entrada-manual').value;
             const saidaIntervaloInput = document.getElementById('saida-intervalo').value;
             const retornoIntervaloInput = document.getElementById('retorno-intervalo').value;
+            const saidaInput = document.getElementById('saida-manual').value;
             const jornadaType = parseFloat(document.getElementById('jornada-type-manual').value);
             
-            if (!entradaInput || !saidaIntervaloInput || !retornoIntervaloInput) {
+            if (!entradaInput || !saidaIntervaloInput || !retornoIntervaloInput || !saidaInput) {
                 alert('Por favor, preencha todos os horários.');
                 return;
             }
@@ -357,6 +386,7 @@
             const entradaMin = timeToMinutes(entradaInput);
             const saidaIntervaloMin = timeToMinutes(saidaIntervaloInput);
             const retornoIntervaloMin = timeToMinutes(retornoIntervaloInput);
+            const saidaMin = timeToMinutes(saidaInput);
             
             // Validar sequência de horários
             if (saidaIntervaloMin <= entradaMin) {
@@ -369,19 +399,24 @@
                 return;
             }
             
+            if (saidaMin <= retornoIntervaloMin) {
+                alert('A saída deve ser após o retorno do intervalo!');
+                return;
+            }
+            
             // Calcular intervalo
             const intervalo = retornoIntervaloMin - saidaIntervaloMin;
             
-            // Calcular tempo trabalhado na manhã
+            // Calcular tempo trabalhado
             const minutosManha = saidaIntervaloMin - entradaMin;
+            const minutosTarde = saidaMin - retornoIntervaloMin;
+            const totalMinutosTrabalhados = minutosManha + minutosTarde;
             
-            // Calcular tempo restante para completar a jornada
-            const totalMinutosNecessarios = (jornadaType * 60) - intervalo;
-            const minutosTarde = totalMinutosNecessarios - minutosManha;
+            // Calcular jornada esperada (sem intervalo)
+            const jornadaEsperadaMin = jornadaType * 60;
             
-            // Calcular saída
-            const saidaMin = retornoIntervaloMin + minutosTarde;
-            const saidaTime = minutesToTime(saidaMin);
+            // Calcular diferença
+            const diferencaMin = totalMinutosTrabalhados - (jornadaEsperadaMin - intervalo);
             
             // Criar objetos Date para exibição
             function createDateFromMinutes(minutes) {
@@ -396,11 +431,12 @@
                 createDateFromMinutes(retornoIntervaloMin),
                 createDateFromMinutes(saidaMin),
                 jornadaType,
-                intervalo
+                intervalo,
+                diferencaMin
             );
         }
         
-        function exibirResultados(entrada, saidaIntervalo, retornoIntervalo, saida, jornadaType, intervalo) {
+        function exibirResultados(entrada, saidaIntervalo, retornoIntervalo, saida, jornadaType, intervalo, diferencaMin) {
             function formatarHora(data) {
                 return data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             }
@@ -409,6 +445,27 @@
             document.getElementById('saida-intervalo-resultado').textContent = formatarHora(saidaIntervalo);
             document.getElementById('retorno-intervalo-resultado').textContent = formatarHora(retornoIntervalo);
             document.getElementById('saida-resultado').textContent = formatarHora(saida);
+            
+            // Mostrar/ocultar diferença conforme o modo
+            const diferencaContainer = document.getElementById('diferenca-container');
+            const diferencaResultado = document.getElementById('diferenca-resultado');
+            
+            if (currentMode === 'manual' && diferencaMin !== 0) {
+                diferencaContainer.style.display = 'flex';
+                diferencaResultado.textContent = formatDiferenca(diferencaMin);
+                
+                // Aplicar classe de cor conforme positivo/negativo
+                diferencaContainer.classList.remove('positivo', 'negativo');
+                if (diferencaMin > 0) {
+                    diferencaContainer.classList.add('positivo');
+                    diferencaResultado.textContent += ' (horas extras)';
+                } else {
+                    diferencaContainer.classList.add('negativo');
+                    diferencaResultado.textContent += ' (a compensar)';
+                }
+            } else {
+                diferencaContainer.style.display = 'none';
+            }
             
             // Calcular totais
             const totalMinutos = (jornadaType * 60);
