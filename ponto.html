@@ -114,6 +114,11 @@
             border-left: 4px solid #52c41a;
             font-weight: bold;
         }
+        .result-item.alerta {
+            background-color: #fff7e6;
+            border-left: 4px solid #faad14;
+            font-weight: bold;
+        }
         .result-item.positivo {
             color: #52c41a;
         }
@@ -269,6 +274,12 @@
                 <div id="diferenca-container" class="result-item diferenca" style="display: none;">
                     <strong>DIFERENÇA:</strong> <span id="diferenca-resultado"></span>
                 </div>
+                <div id="alerta-intervalo" class="result-item alerta" style="display: none;">
+                    <strong>ATENÇÃO:</strong> <span id="alerta-intervalo-texto"></span>
+                </div>
+                <div id="tempo-extra-container" class="result-item" style="display: none;">
+                    <strong>TEMPO EXTRA:</strong> <span id="tempo-extra-resultado"></span>
+                </div>
                 <div class="total-info">
                     <span id="total-dia"></span>
                 </div>
@@ -341,14 +352,24 @@
             }
             
             const jornadaType = parseFloat(document.getElementById('jornada-type').value);
-            const intervalo = parseInt(document.getElementById('intervalo-auto').value);
+            let intervalo = parseInt(document.getElementById('intervalo-auto').value);
+            
+            // Verificar se o intervalo é menor que 1 hora
+            const alertaIntervalo = document.getElementById('alerta-intervalo');
+            if (intervalo < 60) {
+                alertaIntervalo.style.display = 'flex';
+                document.getElementById('alerta-intervalo-texto').textContent = 
+                    'Realizou tempo inferior a 1 hora de intervalo (' + intervalo + 'min)';
+            } else {
+                alertaIntervalo.style.display = 'none';
+            }
             
             const [horaEntrada, minutoEntrada] = entradaInput.split(':').map(Number);
             const entrada = new Date();
             entrada.setHours(horaEntrada, minutoEntrada, 0, 0);
             
             // Calcular minutos totais de trabalho (jornada total - intervalo)
-            const totalMinutosTrabalho = (jornadaType * 60) - intervalo;
+            const totalMinutosTrabalho = (jornadaType * 60) - 60; // Considera sempre 1h de intervalo para cálculo
             
             // Distribuir tempo de trabalho (60% manhã, 40% tarde - ajustável)
             const minutosManha = Math.round(totalMinutosTrabalho * 0.6);
@@ -357,7 +378,10 @@
             // Calcular todos os horários
             const saidaIntervalo = new Date(entrada.getTime() + minutosManha * 60000);
             const retornoIntervalo = new Date(saidaIntervalo.getTime() + intervalo * 60000);
-            const saida = new Date(retornoIntervalo.getTime() + minutosTarde * 60000);
+            
+            // Calcular saída considerando o tempo extra se o intervalo for maior que 1h
+            const tempoExtraIntervalo = intervalo - 60;
+            const saida = new Date(retornoIntervalo.getTime() + (minutosTarde + tempoExtraIntervalo) * 60000);
             
             exibirResultados(
                 entrada,
@@ -366,7 +390,8 @@
                 saida,
                 jornadaType,
                 intervalo,
-                0 // Sem diferença no modo automático
+                0, // Diferença
+                tempoExtraIntervalo > 0 ? tempoExtraIntervalo : 0
             );
         }
         
@@ -407,6 +432,16 @@
             // Calcular intervalo
             const intervalo = retornoIntervaloMin - saidaIntervaloMin;
             
+            // Verificar intervalo mínimo
+            const alertaIntervalo = document.getElementById('alerta-intervalo');
+            if (intervalo < 60) {
+                alertaIntervalo.style.display = 'flex';
+                document.getElementById('alerta-intervalo-texto').textContent = 
+                    'Realizou tempo inferior a 1 hora de intervalo (' + intervalo + 'min)';
+            } else {
+                alertaIntervalo.style.display = 'none';
+            }
+            
             // Calcular tempo trabalhado
             const minutosManha = saidaIntervaloMin - entradaMin;
             const minutosTarde = saidaMin - retornoIntervaloMin;
@@ -415,8 +450,11 @@
             // Calcular jornada esperada (sem intervalo)
             const jornadaEsperadaMin = jornadaType * 60;
             
-            // Calcular diferença
-            const diferencaMin = totalMinutosTrabalhados - (jornadaEsperadaMin - intervalo);
+            // Calcular diferença (considerando 1h de intervalo padrão)
+            const diferencaMin = totalMinutosTrabalhados - (jornadaEsperadaMin - 60);
+            
+            // Calcular tempo extra do intervalo (se maior que 1h)
+            const tempoExtraIntervalo = intervalo - 60 > 0 ? intervalo - 60 : 0;
             
             // Criar objetos Date para exibição
             function createDateFromMinutes(minutes) {
@@ -432,11 +470,12 @@
                 createDateFromMinutes(saidaMin),
                 jornadaType,
                 intervalo,
-                diferencaMin
+                diferencaMin,
+                tempoExtraIntervalo
             );
         }
         
-        function exibirResultados(entrada, saidaIntervalo, retornoIntervalo, saida, jornadaType, intervalo, diferencaMin) {
+        function exibirResultados(entrada, saidaIntervalo, retornoIntervalo, saida, jornadaType, intervalo, diferencaMin, tempoExtraIntervalo) {
             function formatarHora(data) {
                 return data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             }
@@ -446,15 +485,14 @@
             document.getElementById('retorno-intervalo-resultado').textContent = formatarHora(retornoIntervalo);
             document.getElementById('saida-resultado').textContent = formatarHora(saida);
             
-            // Mostrar/ocultar diferença conforme o modo
+            // Mostrar diferença de horas
             const diferencaContainer = document.getElementById('diferenca-container');
             const diferencaResultado = document.getElementById('diferenca-resultado');
             
-            if (currentMode === 'manual' && diferencaMin !== 0) {
+            if (diferencaMin !== 0) {
                 diferencaContainer.style.display = 'flex';
                 diferencaResultado.textContent = formatDiferenca(diferencaMin);
                 
-                // Aplicar classe de cor conforme positivo/negativo
                 diferencaContainer.classList.remove('positivo', 'negativo');
                 if (diferencaMin > 0) {
                     diferencaContainer.classList.add('positivo');
@@ -467,12 +505,24 @@
                 diferencaContainer.style.display = 'none';
             }
             
+            // Mostrar tempo extra do intervalo
+            const tempoExtraContainer = document.getElementById('tempo-extra-container');
+            const tempoExtraResultado = document.getElementById('tempo-extra-resultado');
+            
+            if (tempoExtraIntervalo > 0) {
+                tempoExtraContainer.style.display = 'flex';
+                tempoExtraResultado.textContent = `+${tempoExtraIntervalo}min (intervalo maior que 1h)`;
+                tempoExtraContainer.classList.add('positivo');
+            } else {
+                tempoExtraContainer.style.display = 'none';
+            }
+            
             // Calcular totais
             const totalMinutos = (jornadaType * 60);
             const horasTotal = Math.floor(totalMinutos / 60);
             const minutosTotal = totalMinutos % 60;
             
-            const tempoTrabalhado = totalMinutos - intervalo;
+            const tempoTrabalhado = totalMinutos - 60; // Considera 1h fixa de intervalo
             const horasTrabalhadas = Math.floor(tempoTrabalhado / 60);
             const minutosTrabalhados = tempoTrabalhado % 60;
             
