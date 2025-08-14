@@ -421,9 +421,9 @@
             const jornadaType = parseFloat(document.getElementById('jornada-type').value);
             let intervalo = parseInt(document.getElementById('intervalo-auto').value);
             
-            // Verificar se o intervalo é menor que 1 hora
+            // Verificar se o intervalo é menor que 1 hora (exceto para jornada de 6h15min)
             const alertaIntervalo = document.getElementById('alerta-intervalo');
-            if (intervalo < 60 && jornadaType >= 6) {  // Apenas alerta para jornadas de 6h ou mais
+            if (intervalo < 60 && jornadaType >= 6 && jornadaType !== 6.25) {
                 alertaIntervalo.style.display = 'flex';
                 document.getElementById('alerta-intervalo-texto').textContent = 
                     'Realizou tempo inferior a 1 hora de intervalo (' + intervalo + 'min)';
@@ -517,7 +517,7 @@
             // Calcular intervalo
             const intervalo = jornadaType === 6.25 ? 0 : retornoIntervaloMin - saidaIntervaloMin;
             
-            // Verificar intervalo mínimo (apenas para jornadas que exigem intervalo)
+            // Verificar intervalo mínimo (apenas para jornadas que exigem intervalo e não é 6h15min)
             const alertaIntervalo = document.getElementById('alerta-intervalo');
             if (intervalo < 60 && jornadaType >= 6 && jornadaType !== 6.25) {
                 alertaIntervalo.style.display = 'flex';
