@@ -271,6 +271,7 @@
                 <div class="form-group">
                     <label for="jornada-type">Tipo de Jornada:</label>
                     <select id="jornada-type">
+                        <option value="6.25">6 horas e 15 minutos</option>
                         <option value="9.8">9 horas e 48 minutos</option>
                         <option value="9">9 horas (sábado)</option>
                     </select>
@@ -307,6 +308,7 @@
                 <div class="form-group">
                     <label for="jornada-type-manual">Tipo de Jornada:</label>
                     <select id="jornada-type-manual">
+                        <option value="6.25">6 horas e 15 minutos</option>
                         <option value="9.8">9 horas e 48 minutos</option>
                         <option value="9">9 horas (sábado)</option>
                     </select>
@@ -421,7 +423,7 @@
             
             // Verificar se o intervalo é menor que 1 hora
             const alertaIntervalo = document.getElementById('alerta-intervalo');
-            if (intervalo < 60) {
+            if (intervalo < 60 && jornadaType >= 6) {  // Apenas alerta para jornadas de 6h ou mais
                 alertaIntervalo.style.display = 'flex';
                 document.getElementById('alerta-intervalo-texto').textContent = 
                     'Realizou tempo inferior a 1 hora de intervalo (' + intervalo + 'min)';
@@ -436,7 +438,8 @@
             entrada.setHours(horaEntrada, minutoEntrada, 0, 0);
             
             // Calcular minutos totais de trabalho (jornada total - intervalo)
-            const totalMinutosTrabalho = (jornadaType * 60) - 60; // Considera sempre 1h de intervalo para cálculo
+            // Para jornada de 6h15min (6.25h), não subtrai intervalo (jornada contínua)
+            const totalMinutosTrabalho = jornadaType === 6.25 ? (jornadaType * 60) : (jornadaType * 60) - 60;
             
             // Distribuir tempo de trabalho (60% manhã, 40% tarde - ajustável)
             const minutosManha = Math.round(totalMinutosTrabalho * 0.6);
@@ -448,12 +451,14 @@
             
             // Calcular saída considerando o tempo extra se o intervalo for maior que 1h
             const tempoExtraIntervalo = intervalo - 60;
-            const saida = new Date(retornoIntervalo.getTime() + (minutosTarde + tempoExtraIntervalo) * 60000);
+            const saida = new Date(jornadaType === 6.25 ? 
+                entrada.getTime() + totalMinutosTrabalho * 60000 :  // Jornada contínua para 6h15min
+                retornoIntervalo.getTime() + (minutosTarde + tempoExtraIntervalo) * 60000);
             
             exibirResultados(
                 entrada,
-                saidaIntervalo,
-                retornoIntervalo,
+                jornadaType === 6.25 ? null : saidaIntervalo,  // Não mostra intervalo para 6h15min
+                jornadaType === 6.25 ? null : retornoIntervalo, // Não mostra intervalo para 6h15min
                 saida,
                 jornadaType,
                 intervalo,
@@ -469,39 +474,52 @@
             const saidaInput = document.getElementById('saida-manual').value;
             const jornadaType = parseFloat(document.getElementById('jornada-type-manual').value);
             
-            if (!entradaInput || !saidaIntervaloInput || !retornoIntervaloInput || !saidaInput) {
+            if (!entradaInput || !saidaInput) {
+                alert('Por favor, preencha pelo menos a entrada e saída.');
+                return;
+            }
+            
+            // Para jornada de 6h15min, não é obrigatório preencher intervalo
+            if (jornadaType !== 6.25 && (!saidaIntervaloInput || !retornoIntervaloInput)) {
                 alert('Por favor, preencha todos os horários.');
                 return;
             }
             
             // Converter para minutos
             const entradaMin = timeToMinutes(entradaInput);
-            const saidaIntervaloMin = timeToMinutes(saidaIntervaloInput);
-            const retornoIntervaloMin = timeToMinutes(retornoIntervaloInput);
             const saidaMin = timeToMinutes(saidaInput);
+            const saidaIntervaloMin = saidaIntervaloInput ? timeToMinutes(saidaIntervaloInput) : 0;
+            const retornoIntervaloMin = retornoIntervaloInput ? timeToMinutes(retornoIntervaloInput) : 0;
             
             // Validar sequência de horários
-            if (saidaIntervaloMin <= entradaMin) {
-                alert('A saída para intervalo deve ser após a entrada!');
+            if (saidaMin <= entradaMin) {
+                alert('A saída deve ser após a entrada!');
                 return;
             }
             
-            if (retornoIntervaloMin <= saidaIntervaloMin) {
-                alert('O retorno do intervalo deve ser após a saída para intervalo!');
-                return;
-            }
-            
-            if (saidaMin <= retornoIntervaloMin) {
-                alert('A saída deve ser após o retorno do intervalo!');
-                return;
+            if (jornadaType !== 6.25) {
+                if (saidaIntervaloMin <= entradaMin) {
+                    alert('A saída para intervalo deve ser após a entrada!');
+                    return;
+                }
+                
+                if (retornoIntervaloMin <= saidaIntervaloMin) {
+                    alert('O retorno do intervalo deve ser após a saída para intervalo!');
+                    return;
+                }
+                
+                if (saidaMin <= retornoIntervaloMin) {
+                    alert('A saída deve ser após o retorno do intervalo!');
+                    return;
+                }
             }
             
             // Calcular intervalo
-            const intervalo = retornoIntervaloMin - saidaIntervaloMin;
+            const intervalo = jornadaType === 6.25 ? 0 : retornoIntervaloMin - saidaIntervaloMin;
             
-            // Verificar intervalo mínimo
+            // Verificar intervalo mínimo (apenas para jornadas que exigem intervalo)
             const alertaIntervalo = document.getElementById('alerta-intervalo');
-            if (intervalo < 60) {
+            if (intervalo < 60 && jornadaType >= 6 && jornadaType !== 6.25) {
                 alertaIntervalo.style.display = 'flex';
                 document.getElementById('alerta-intervalo-texto').textContent = 
                     'Realizou tempo inferior a 1 hora de intervalo (' + intervalo + 'min)';
@@ -512,15 +530,25 @@
             }
             
             // Calcular tempo trabalhado
-            const minutosManha = saidaIntervaloMin - entradaMin;
-            const minutosTarde = saidaMin - retornoIntervaloMin;
-            const totalMinutosTrabalhados = minutosManha + minutosTarde;
+            let totalMinutosTrabalhados;
+            if (jornadaType === 6.25) {
+                totalMinutosTrabalhados = saidaMin - entradaMin; // Jornada contínua
+            } else {
+                const minutosManha = saidaIntervaloMin - entradaMin;
+                const minutosTarde = saidaMin - retornoIntervaloMin;
+                totalMinutosTrabalhados = minutosManha + minutosTarde;
+            }
             
-            // Calcular jornada esperada (sem intervalo)
+            // Calcular jornada esperada
             const jornadaEsperadaMin = jornadaType * 60;
             
-            // Calcular diferença (considerando 1h de intervalo padrão)
-            const diferencaMin = totalMinutosTrabalhados - (jornadaEsperadaMin - 60);
+            // Calcular diferença
+            let diferencaMin;
+            if (jornadaType === 6.25) {
+                diferencaMin = totalMinutosTrabalhados - jornadaEsperadaMin; // Jornada contínua sem intervalo
+            } else {
+                diferencaMin = totalMinutosTrabalhados - (jornadaEsperadaMin - 60); // Considera 1h de intervalo padrão
+            }
             
             // Calcular tempo extra do intervalo (se maior que 1h)
             const tempoExtraIntervalo = intervalo - 60 > 0 ? intervalo - 60 : 0;
@@ -534,8 +562,8 @@
             
             exibirResultados(
                 createDateFromMinutes(entradaMin),
-                createDateFromMinutes(saidaIntervaloMin),
-                createDateFromMinutes(retornoIntervaloMin),
+                jornadaType === 6.25 ? null : createDateFromMinutes(saidaIntervaloMin),
+                jornadaType === 6.25 ? null : createDateFromMinutes(retornoIntervaloMin),
                 createDateFromMinutes(saidaMin),
                 jornadaType,
                 intervalo,
@@ -546,6 +574,7 @@
         
         function exibirResultados(entrada, saidaIntervalo, retornoIntervalo, saida, jornadaType, intervalo, diferencaMin, tempoExtraIntervalo) {
             function formatarHora(data) {
+                if (!data) return "Não aplicável";
                 return data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             }
             
@@ -591,14 +620,24 @@
             const horasTotal = Math.floor(totalMinutos / 60);
             const minutosTotal = totalMinutos % 60;
             
-            const tempoTrabalhado = totalMinutos - 60; // Considera 1h fixa de intervalo
-            const horasTrabalhadas = Math.floor(tempoTrabalhado / 60);
-            const minutosTrabalhados = tempoTrabalhado % 60;
+            let tempoTrabalhado, horasTrabalhadas, minutosTrabalhados;
+            
+            if (jornadaType === 6.25) {
+                // Jornada contínua de 6h15min sem intervalo
+                tempoTrabalhado = totalMinutos;
+                horasTrabalhadas = horasTotal;
+                minutosTrabalhados = minutosTotal;
+            } else {
+                // Jornadas com intervalo (considera 1h fixa de intervalo)
+                tempoTrabalhado = totalMinutos - 60;
+                horasTrabalhadas = Math.floor(tempoTrabalhado / 60);
+                minutosTrabalhados = tempoTrabalhado % 60;
+            }
             
             document.getElementById('total-dia').innerHTML = `
                 <strong>Jornada total:</strong> ${horasTotal}h${minutosTotal.toString().padStart(2, '0')}min<br>
                 <strong>Tempo trabalhado:</strong> ${horasTrabalhadas}h${minutosTrabalhados.toString().padStart(2, '0')}min<br>
-                <strong>Intervalo:</strong> ${Math.floor(intervalo/60)}h${(intervalo%60).toString().padStart(2, '0')}min
+                ${jornadaType === 6.25 ? '' : `<strong>Intervalo:</strong> ${Math.floor(intervalo/60)}h${(intervalo%60).toString().padStart(2, '0')}min`}
             `;
             
             document.getElementById('resultado').style.display = 'block';
