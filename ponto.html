@@ -17,6 +17,15 @@
             display: flex;
             flex-direction: column;
         }
+        .real-time-clock {
+            background-color: #003366;
+            color: white;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
         .logo-container {
             text-align: center;
             padding: 15px 0;
@@ -238,6 +247,11 @@
     </style>
 </head>
 <body>
+    <!-- Relógio em tempo real adicionado aqui -->
+    <div class="real-time-clock">
+        <span id="current-time">Carregando...</span>
+    </div>
+    
     <div class="logo-container">
         <img src="https://upload.wikimedia.org/wikipedia/pt/b/b3/Logotipo_da_Record_Gua%C3%ADba.png" alt="Record Guaíba">
     </div>
@@ -271,16 +285,16 @@
                 <div class="form-group">
                     <label for="jornada-type">Tipo de Jornada:</label>
                     <select id="jornada-type">
-                        <option value="6.25">6 horas e 15 minutos</option>
-                        <option value="9.8">9 horas e 48 minutos</option>
+                        <option value="6.25">6h15min</option>
+                        <option value="7.2">7h12min</option>
                         <option value="9">9 horas (sábado)</option>
+                        <option value="9.8">9h48min</option>
                     </select>
                 </div>
                 
                 <div class="form-group">
-                    <label for="intervalo-auto">Duração do Intervalo:</label>
+                    <label for="intervalo-auto">Duração do Intervalo em minutos:</label>
                     <input type="number" id="intervalo-auto" min="15" max="120" step="15" value="60">
-                    <span>minutos</span>
                 </div>
             </div>
             
@@ -308,9 +322,10 @@
                 <div class="form-group">
                     <label for="jornada-type-manual">Tipo de Jornada:</label>
                     <select id="jornada-type-manual">
-                        <option value="6.25">6 horas e 15 minutos</option>
-                        <option value="9.8">9 horas e 48 minutos</option>
+                        <option value="6.25">6h15min</option>
+                        <option value="7.2">7h12min</option>
                         <option value="9">9 horas (sábado)</option>
+                        <option value="9.8">9h48min</option>
                     </select>
                 </div>
             </div>
@@ -340,6 +355,29 @@
     </div>
 
     <script>
+        // Função para atualizar o relógio em tempo real
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const dateString = now.toLocaleDateString('pt-BR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+            
+            document.getElementById('current-time').innerHTML = 
+                `${dateString} - ${timeString}`;
+        }
+        
+        // Atualizar o relógio a cada segundo
+        setInterval(updateClock, 1000);
+        updateClock(); // Inicializar imediatamente
+        
         let currentMode = 'automatic';
         
         // Atualiza o tipo de jornada quando o checkbox é alterado
@@ -402,7 +440,7 @@
                     <div class="popup-alert">
                         <h2>⚠️ Atenção! ⚠️</h2>
                         <p>Você realizou apenas ${intervalo} minutos de intervalo!<br><br>
-                        O intervalo mínimo recomendado é de 1 hora (60 minutos) para garantir seu bem-estar e conformidade com as normas trabalhistas. Por favor, tenha mais atenção com seus horários de descanso! ⏰💙</p>
+                        O intervalo mínimo recomendado é de 1 hora (60 minutos) para garantir seu bem-estar và conformidade com as normas trabalhistas. Por favor, tenha mais atenção com seus horários de descanso! ⏰💙</p>
                         <button onclick="document.getElementById('intervalo-popup').remove()">Sair</button>
                     </div>
                 </div>
