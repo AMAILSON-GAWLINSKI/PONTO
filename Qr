@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de QR Code WiFi - Record_Guest</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        h1 {
+            color: #0066cc;
+            margin-bottom: 10px;
+        }
+        
+        .config-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .config-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #0052a3;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .qr-container {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        #qrcode {
+            display: inline-block;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .voucher-sheet {
+            display: none;
+            page-break-after: always;
+        }
+        
+        .voucher {
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .voucher-info {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .expiry {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .voucher-sheet, .voucher-sheet * {
+                visibility: visible;
+            }
+            .voucher-sheet {
+                display: block;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .config-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Gerador de QR Code WiFi</h1>
+            <p>Rede: <strong>Record_Guest</strong> | Senha: <strong>Visitantes@25</strong></p>
+        </header>
+        
+        <div class="config-panel">
+            <div>
+                <div class="config-group">
+                    <label for="expiryDays">Dias de Validade:</label>
+                    <input type="number" id="expiryDays" min="1" max="30" value="1">
+                </div>
+                <div class="config-group">
+                    <label for="voucherCount">Quantidade de Vouchers (para impressão):</label>
+                    <input type="number" id="voucherCount" min="1" max="12" value="4">
+                </div>
+            </div>
+            <div>
+                <div class="config-group">
+                    <label for="networkType">Tipo de Rede:</label>
+                    <select id="networkType">
+                        <option value="WPA">WPA/WPA2</option>
+                        <option value="WEP">WEP</option>
+                        <option value="nopass">Sem senha</option>
+                    </select>
+                </div>
+                <div class="config-group">
+                    <label for="networkHidden">Rede Ocultada?</label>
+                    <select id="networkHidden">
+                        <option value="false">Não</option>
+                        <option value="true">Sim</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <button id="generateBtn">Gerar QR Code</button>
+            <button id="printBtn">Gerar para Impressão</button>
+        </div>
+        
+        <div class="qr-container no-print">
+            <h2>QR Code para Conexão WiFi</h2>
+            <div id="qrcode"></div>
+            <div id="qrInfo" class="voucher-info">
+                <p>Válido por <span id="validDays">1</span> dia(s) até: <span id="expiryDate"></span></p>
+            </div>
+        </div>
+        
+        <div id="voucherSheet" class="voucher-sheet">
+            <h2>Vouchers de Acesso - Record_Guest</h2>
+            <div id="vouchersContainer" class="vouchers-container"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generateBtn');
+            const printBtn = document.getElementById('printBtn');
+            const expiryDaysInput = document.getElementById('expiryDays');
+            const voucherCountInput = document.getElementById('voucherCount');
+            const qrcodeDiv = document.getElementById('qrcode');
+            const expiryDateSpan = document.getElementById('expiryDate');
+            const validDaysSpan = document.getElementById('validDays');
+            const vouchersContainer = document.getElementById('vouchersContainer');
+            const networkTypeSelect = document.getElementById('networkType');
+            const networkHiddenSelect = document.getElementById('networkHidden');
+            
+            const ssid = "Record_Guest";
+            const password = "Visitantes@25";
+            
+            let qrcode = null;
+            
+            // Função para calcular data de expiração
+            function calculateExpiryDate(days) {
+                const expiryDate = new Date();
+                expiryDate.setDate(expiryDate.getDate() + days);
+                return expiryDate.toLocaleDateString('pt-BR');
+            }
+            
+            // Função para gerar string do QR Code no formato WiFi
+            function generateWifiString() {
+                const hidden = networkHiddenSelect.value === 'true';
+                return `WIFI:T:${networkTypeSelect.value};S:${ssid};P:${password};H:${hidden};;`;
+            }
+            
+            // Função para gerar QR Code
+            function generateQRCode() {
+                const days = parseInt(expiryDaysInput.value);
+                const wifiString = generateWifiString();
+                
+                // Limpar QR Code anterior
+                if (qrcode) {
+                    qrcode.clear();
+                } else {
+                    qrcode = new QRCode(qrcodeDiv, {
+                        width: 200,
+                        height: 200
+                    });
+                }
+                
+                // Gerar novo QR Code
+                qrcode.makeCode(wifiString);
+                
+                // Atualizar informações de validade
+                validDaysSpan.textContent = days;
+                expiryDateSpan.textContent = calculateExpiryDate(days);
+            }
+            
+            // Função para gerar vouchers para impressão
+            function generateVouchers() {
+                const days = parseInt(expiryDaysInput.value);
+                const count = parseInt(voucherCountInput.value);
+                const expiryDate = calculateExpiryDate(days);
+                const wifiString = generateWifiString();
+                
+                vouchersContainer.innerHTML = '';
+                
+                for (let i = 0; i < count; i++) {
+                    const voucherDiv = document.createElement('div');
+                    voucherDiv.className = 'voucher';
+                    
+                    // Criar QR Code individual para cada voucher
+                    const voucherQrDiv = document.createElement('div');
+                    new QRCode(voucherQrDiv, {
+                        text: wifiString,
+                        width: 120,
+                        height: 120
+                    });
+                    
+                    voucherDiv.innerHTML = `
+                        <h3>Voucher de Acesso WiFi</h3>
+                        <p>Rede: <strong>${ssid}</strong></p>
+                        <div class="voucher-qr"></div>
+                        <div class="voucher-info">
+                            <p>Senha: <strong>${password}</strong></p>
+                            <p class="expiry">Válido até: ${expiryDate}</p>
+                        </div>
+                    `;
+                    
+                    voucherDiv.querySelector('.voucher-qr').appendChild(voucherQrDiv);
+                    vouchersContainer.appendChild(voucherDiv);
+                }
+            }
+            
+            // Event Listeners
+            generateBtn.addEventListener('click', generateQRCode);
+            
+            printBtn.addEventListener('click', function() {
+                generateVouchers();
+                document.getElementById('voucherSheet').style.display = 'block';
+                setTimeout(function() {
+                    window.print();
+                }, 500);
+            });
+            
+            // Gerar QR Code inicial
+            generateQRCode();
+        });
+    </script>
+</body>
+</html>
